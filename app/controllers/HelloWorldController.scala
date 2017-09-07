@@ -8,4 +8,5 @@ import play.api.mvc.{AbstractController, BaseController, ControllerComponents}
 class HelloWorldController  @Inject()(cc: ControllerComponents) extends AbstractController(cc) {
 
   def count = Action { Ok("Done") }
+
 }

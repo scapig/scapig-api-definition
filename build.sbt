@@ -12,5 +12,6 @@ scalaVersion := "2.12.2"
 
 libraryDependencies ++= Seq( ws, guice )
 libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.1" % "test"
+libraryDependencies += "org.mockito" % "mockito-all" % "1.10.19" % "test"
 
 unmanagedResourceDirectories in Test <+=  baseDirectory ( _ /"target/web/public/test" )
