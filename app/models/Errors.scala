@@ -15,6 +15,7 @@ sealed abstract class ErrorResponse(
 
 case class ErrorInvalidRequest(errorMessage: String) extends ErrorResponse(BAD_REQUEST, "INVALID_REQUEST", errorMessage)
 case object ContextAlreadyDefinedForAnotherService extends ErrorResponse(CONFLICT, "CONTEXT_ALREADY_DEFINED", "Context is already defined for another service. It must be unique per service.")
+case class ApiNotFound(context: String) extends ErrorResponse(NOT_FOUND, "NOT_FOUND", s"no api found for context $context")
 
 class ValidationException(message: String) extends RuntimeException(message)
 case class ContextAlreadyDefinedForAnotherServiceException(context: String, serviceName: String) extends RuntimeException(s"Context '$context' was already defined for service '$serviceName'")

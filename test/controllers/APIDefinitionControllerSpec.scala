@@ -66,4 +66,27 @@ class APIDefinitionControllerSpec extends UnitSpec with MockitoSugar {
     }
 
   }
+
+  "fetchByContext" should {
+
+    "succeed with a 200 (Ok) with the api-definition when the API exists" in new Setup {
+
+      given(mockApiDefinitionService.fetchByContext(apiDefinition.context))
+        .willReturn(successful(Some(apiDefinition)))
+
+      val result: Result = await(underTest.fetchByContext(apiDefinition.context)(request))
+
+      status(result) shouldBe Status.OK
+      jsonBodyOf(result) shouldBe Json.toJson(apiDefinition)
+    }
+
+    "fail with a 404 (Not Found) when the api-definition does not exist" in new Setup {
+      given(mockApiDefinitionService.fetchByContext(apiDefinition.context)).willReturn(successful(None))
+
+      val result: Result = await(underTest.fetchByContext(apiDefinition.context)(request))
+
+      status(result) shouldBe Status.NOT_FOUND
+      jsonBodyOf(result) shouldBe Json.parse(s"""{"code": "NOT_FOUND", "message": "no api found for context ${apiDefinition.context}"}""")
+    }
+  }
 }

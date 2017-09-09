@@ -11,6 +11,10 @@ import scala.concurrent.Future
 @Singleton
 class APIDefinitionService @Inject()(apiDefinitionRepository: APIDefinitionRepository) {
 
+  def fetchByContext(apiContext: String): Future[Option[APIDefinition]] = {
+    apiDefinitionRepository.fetchByContext(apiContext)
+  }
+
   def createOrUpdate(apiDefinition: APIDefinition): Future[APIDefinition] = {
     for {
       existingApi <- apiDefinitionRepository.fetchByContext(apiDefinition.context)

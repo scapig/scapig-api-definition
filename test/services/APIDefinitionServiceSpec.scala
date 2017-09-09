@@ -61,6 +61,30 @@ class APIDefinitionServiceSpec extends UnitSpec with MockitoSugar {
 
       intercept[RuntimeException]{await(underTest.createOrUpdate(apiDefinition))}
     }
+  }
+
+  "fetchByContext" should {
+    "return the api when it exists" in new Setup {
+      given(mockApiDefinitionRepository.fetchByContext(apiDefinition.context)).willReturn(successful(Some(apiDefinition)))
+
+      val result = await(underTest.fetchByContext(apiDefinition.context))
+
+      result shouldBe Some(apiDefinition)
+    }
+
+    "return None when the API does not exist" in new Setup {
+      given(mockApiDefinitionRepository.fetchByContext(apiDefinition.context)).willReturn(successful(None))
+
+      val result = await(underTest.fetchByContext(apiDefinition.context))
+
+      result shouldBe None
+    }
+
+    "fail when the repository fails" in new Setup {
+      given(mockApiDefinitionRepository.fetchByContext(apiDefinition.context)).willReturn(failed(new RuntimeException("Error message")))
+
+      intercept[RuntimeException]{await(underTest.fetchByContext(apiDefinition.context))}
+    }
 
   }
 }

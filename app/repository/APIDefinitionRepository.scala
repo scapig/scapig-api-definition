@@ -6,7 +6,8 @@ import models.JsonFormatters._
 import models.APIDefinition
 import play.api.libs.json.Json
 import play.modules.reactivemongo.ReactiveMongoApi
-import reactivemongo.api.commands.UpdateWriteResult
+import reactivemongo.api.commands.{UpdateWriteResult, WriteResult}
+import reactivemongo.api.indexes.{Index, IndexType}
 import reactivemongo.play.json.collection.JSONCollection
 import reactivemongo.play.json.ImplicitBSONHandlers._
 
@@ -35,4 +36,18 @@ class APIDefinitionRepository @Inject()(val reactiveMongoApi: ReactiveMongoApi) 
     )
   }
 
+  private def createIndex(field: String, indexName: String): Future[WriteResult] = {
+    repository.flatMap(collection =>
+      collection.indexesManager.create(Index(Seq((field, IndexType.Ascending)), Some(indexName)))
+    )
+  }
+
+  private def ensureIndexes() = {
+    Future.sequence(Seq(
+    createIndex("serviceName", "serviceNameIndex"),
+    createIndex("context", "contextIndex"),
+    ))
+  }
+
+  ensureIndexes()
 }
