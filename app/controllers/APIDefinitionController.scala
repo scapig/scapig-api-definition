@@ -3,7 +3,7 @@ package controllers
 import javax.inject.{Inject, Singleton}
 
 import models.JsonFormatters._
-import models.{APIDefinition, JsonFormatters}
+import models._
 import play.api.libs.json.JsValue
 import play.api.mvc.{AbstractController, Action, ControllerComponents}
 import services.APIDefinitionService
@@ -18,6 +18,8 @@ class APIDefinitionController  @Inject()(cc: ControllerComponents,
     withJsonBody[APIDefinition] { apiDefinition: APIDefinition =>
 
       apiDefinitionService.createOrUpdate(apiDefinition) map { _ => NoContent}
+    } recover {
+      case _: ContextAlreadyDefinedForAnotherServiceException => ContextAlreadyDefinedForAnotherService.toHttpResponse
     }
   }
 }

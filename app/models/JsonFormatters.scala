@@ -4,13 +4,13 @@ import play.api.libs.json._
 
 object JsonFormatters {
 
-  implicit val formatAPIDefinition: OFormat[APIDefinition] = Json.format[APIDefinition]
-  implicit val formatAPIVersion: OFormat[APIVersion] = Json.format[APIVersion]
-  implicit val formatEndpoint: OFormat[Endpoint] = Json.format[Endpoint]
-  implicit val formatParameter: OFormat[Parameter] = Json.format[Parameter]
-  implicit val formatAPIStatus: Format[APIStatus.Value] = EnumJson.enumFormat(APIStatus)
   implicit val formatAuthType: Format[AuthType.Value] = EnumJson.enumFormat(AuthType)
   implicit val formatHttpMethod: Format[HttpMethod.Value] = EnumJson.enumFormat(HttpMethod)
+  implicit val formatAPIStatus: Format[APIStatus.Value] = EnumJson.enumFormat(APIStatus)
+  implicit val formatParameter: OFormat[Parameter] = Json.format[Parameter]
+  implicit val formatEndpoint: OFormat[Endpoint] = Json.format[Endpoint]
+  implicit val formatAPIVersion: OFormat[APIVersion] = Json.format[APIVersion]
+  implicit val formatAPIDefinition: OFormat[APIDefinition] = Json.format[APIDefinition]
   implicit val errorResponseWrites = new Writes[ErrorResponse] {
     def writes(e: ErrorResponse): JsValue = Json.obj("code" -> e.errorCode, "message" -> e.message)
   }
