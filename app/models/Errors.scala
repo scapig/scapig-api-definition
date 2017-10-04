@@ -17,6 +17,7 @@ case class ErrorInvalidRequest(errorMessage: String) extends ErrorResponse(BAD_R
 case object ContextAlreadyDefinedForAnotherService extends ErrorResponse(CONFLICT, "CONTEXT_ALREADY_DEFINED", "Context is already defined for another service. It must be unique per service.")
 case class ApiNotFound(context: String) extends ErrorResponse(NOT_FOUND, "NOT_FOUND", s"no api found for context $context")
 case class ErrorInternalServerError(errorMessage: String) extends ErrorResponse(INTERNAL_SERVER_ERROR, "INTERNAL_SERVER_ERROR", errorMessage)
+case class ErrorNotFound() extends ErrorResponse(NOT_FOUND, "NOT_FOUND", "The resource could not be found.")
 
 class ValidationException(message: String) extends RuntimeException(message)
 case class ContextAlreadyDefinedForAnotherServiceException(context: String, serviceName: String) extends RuntimeException(s"Context '$context' was already defined for service '$serviceName'")
