@@ -52,14 +52,18 @@ class APIDefinitionServiceSpec extends UnitSpec with MockitoSugar {
 
       given(mockApiDefinitionRepository.fetchByContext(apiDefinition.context)).willReturn(successful(Some(otherApiDefinition)))
 
-      intercept[ContextAlreadyDefinedForAnotherServiceException]{await(underTest.createOrUpdate(apiDefinition))}
+      intercept[ContextAlreadyDefinedForAnotherServiceException] {
+        await(underTest.createOrUpdate(apiDefinition))
+      }
     }
 
     "fail when the repository fails" in new Setup {
 
       given(mockApiDefinitionRepository.fetchByContext(apiDefinition.context)).willReturn(failed(new RuntimeException("Error message")))
 
-      intercept[RuntimeException]{await(underTest.createOrUpdate(apiDefinition))}
+      intercept[RuntimeException] {
+        await(underTest.createOrUpdate(apiDefinition))
+      }
     }
   }
 
@@ -83,7 +87,20 @@ class APIDefinitionServiceSpec extends UnitSpec with MockitoSugar {
     "fail when the repository fails" in new Setup {
       given(mockApiDefinitionRepository.fetchByContext(apiDefinition.context)).willReturn(failed(new RuntimeException("Error message")))
 
-      intercept[RuntimeException]{await(underTest.fetchByContext(apiDefinition.context))}
+      intercept[RuntimeException] {
+        await(underTest.fetchByContext(apiDefinition.context))
+      }
+    }
+
+  }
+
+  "findAll" should {
+    "return the all the apis" in new Setup {
+      given(mockApiDefinitionRepository.findAll()).willReturn(successful(Seq(apiDefinition)))
+
+      val result = await(underTest.findAll())
+
+      result shouldBe Seq(apiDefinition)
     }
 
   }

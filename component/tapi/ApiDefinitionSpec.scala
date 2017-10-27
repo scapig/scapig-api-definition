@@ -27,10 +27,17 @@ class ApiDefinitionSpec extends BaseFeatureSpec {
       Then("I receive a 204 (NoContent)")
       createdResponse.code shouldBe NO_CONTENT
 
-      And("The api-definition can be retrieved")
+      And("The api-definition can be retrieved by context")
       val fetchResponse = Http(s"$serviceUrl/api-definition?context=${apiDefinition.context}").asString
       fetchResponse.code shouldBe OK
       Json.parse(fetchResponse.body) shouldBe Json.toJson(apiDefinition)
+
+      And("The api-definition is retrieved when fetching all")
+      val fetchAllResponse = Http(s"$serviceUrl/apis").asString
+      fetchAllResponse.code shouldBe OK
+      Json.parse(fetchAllResponse.body) shouldBe Json.toJson(Seq(apiDefinition))
+
+
     }
   }
 }

@@ -15,6 +15,10 @@ class APIDefinitionService @Inject()(apiDefinitionRepository: APIDefinitionRepos
     apiDefinitionRepository.fetchByContext(apiContext)
   }
 
+  def findAll(): Future[Seq[APIDefinition]] = {
+    apiDefinitionRepository.findAll()
+  }
+
   def createOrUpdate(apiDefinition: APIDefinition): Future[APIDefinition] = {
     for {
       existingApi <- apiDefinitionRepository.fetchByContext(apiDefinition.context)

@@ -36,6 +36,12 @@ class APIDefinitionRepository @Inject()(val reactiveMongoApi: ReactiveMongoApi) 
     )
   }
 
+  def findAll(): Future[Seq[APIDefinition]] = {
+    repository.flatMap(collection =>
+      collection.find(Json.obj()).cursor[APIDefinition]().collect[Seq]()
+    )
+  }
+
   private def createIndex(field: String, indexName: String): Future[WriteResult] = {
     repository.flatMap(collection =>
       collection.indexesManager.create(Index(Seq((field, IndexType.Ascending)), Some(indexName)))

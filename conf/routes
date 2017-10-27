@@ -4,3 +4,5 @@ GET     /assets/*file               controllers.Assets.versioned(path="/public",
 POST    /api-definition             @controllers.APIDefinitionController.createOrUpdate()
 
 GET     /api-definition             @controllers.APIDefinitionController.fetchByContext(context)
+
+GET     /apis                       @controllers.APIDefinitionController.findAll()

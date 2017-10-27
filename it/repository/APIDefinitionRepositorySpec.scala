@@ -43,4 +43,15 @@ class APIDefinitionRepositorySpec extends UnitSpec with BeforeAndAfterEach {
     }
 
   }
+
+  "findAll" should {
+    "return all api-definition" in {
+      val otherApiDefinition = apiDefinition.copy(serviceName = "anotherService", context = "another")
+
+      await(underTest.save(apiDefinition))
+      await(underTest.save(otherApiDefinition))
+
+      await(underTest.findAll()) should contain allOf (apiDefinition, otherApiDefinition)
+    }
+  }
 }

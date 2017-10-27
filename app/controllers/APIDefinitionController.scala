@@ -9,7 +9,6 @@ import play.api.mvc.{AbstractController, Action, ControllerComponents}
 import services.APIDefinitionService
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
 
 @Singleton
 class APIDefinitionController  @Inject()(cc: ControllerComponents,
@@ -30,4 +29,9 @@ class APIDefinitionController  @Inject()(cc: ControllerComponents,
       case None => ApiNotFound(context).toHttpResponse
     }
   }
+
+  def findAll() = Action.async { implicit request =>
+    apiDefinitionService.findAll() map { apis => Ok(Json.toJson(apis))}
+  }
+
 }

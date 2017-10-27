@@ -89,4 +89,19 @@ class APIDefinitionControllerSpec extends UnitSpec with MockitoSugar {
       jsonBodyOf(result) shouldBe Json.parse(s"""{"code": "NOT_FOUND", "message": "no api found for context ${apiDefinition.context}"}""")
     }
   }
+
+  "findAll" should {
+
+    "succeed with a 200 (Ok) with all the api-definitions" in new Setup {
+
+      given(mockApiDefinitionService.findAll())
+        .willReturn(successful(Seq(apiDefinition)))
+
+      val result: Result = await(underTest.findAll()(request))
+
+      status(result) shouldBe Status.OK
+      jsonBodyOf(result) shouldBe Json.toJson(Seq(apiDefinition))
+    }
+
+  }
 }
