@@ -15,11 +15,9 @@ class APIDefinitionController  @Inject()(cc: ControllerComponents,
                                          apiDefinitionService: APIDefinitionService) extends AbstractController(cc) with CommonControllers {
 
   def createOrUpdate(): Action[JsValue] = Action.async(parse.json) { implicit request =>
-    withJsonBody[APIDefinition] { apiDefinition: APIDefinition =>
+    withJsonBody[APIVersionRequest] { apiVersionRequest: APIVersionRequest =>
 
-      apiDefinitionService.createOrUpdate(apiDefinition) map { _ => NoContent}
-    } recover {
-      case _: ContextAlreadyDefinedForAnotherServiceException => ContextAlreadyDefinedForAnotherService.toHttpResponse
+      apiDefinitionService.createOrUpdate(apiVersionRequest) map { api => Ok(Json.toJson(api))}
     }
   }
 

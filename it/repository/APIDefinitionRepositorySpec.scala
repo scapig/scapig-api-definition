@@ -13,8 +13,8 @@ import scala.concurrent.ExecutionContext.Implicits.global
 class APIDefinitionRepositorySpec extends UnitSpec with BeforeAndAfterEach {
 
   val apiEndpoint = Endpoint("/today", "Get Today's Date", HttpMethod.GET, AuthType.NONE)
-  val apiVersion = APIVersion("1.0", APIStatus.PROTOTYPED, Seq(apiEndpoint))
-  val apiDefinition = APIDefinition("calendar", "/", "Calendar API", "My Calendar API", "calendar", Seq(apiVersion))
+  val apiVersion = APIVersion("1.0", "http://localhost:8080", APIStatus.PROTOTYPED, Seq(apiEndpoint))
+  val apiDefinition = APIDefinition("Calendar API", "My Calendar API", "calendar", Seq(apiVersion))
 
   lazy val fakeApplication: Application = new GuiceApplicationBuilder()
     .configure("mongodb.uri" -> "mongodb://localhost:27017/tapi-api-definition-test")
@@ -46,7 +46,7 @@ class APIDefinitionRepositorySpec extends UnitSpec with BeforeAndAfterEach {
 
   "findAll" should {
     "return all api-definition" in {
-      val otherApiDefinition = apiDefinition.copy(serviceName = "anotherService", context = "another")
+      val otherApiDefinition = apiDefinition.copy(context = "another")
 
       await(underTest.save(apiDefinition))
       await(underTest.save(otherApiDefinition))

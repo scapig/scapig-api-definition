@@ -1,6 +1,6 @@
 package services
 
-import models._
+import models.{APIVersionRequest, _}
 import org.mockito.BDDMockito.given
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{verify, when}
@@ -8,14 +8,13 @@ import org.scalatest.mockito.MockitoSugar
 import repository.APIDefinitionRepository
 import utils.UnitSpec
 
-import scala.concurrent.Future
 import scala.concurrent.Future.{failed, successful}
 
 class APIDefinitionServiceSpec extends UnitSpec with MockitoSugar {
 
   val apiEndpoint = Endpoint("/today", "Get Today's Date", HttpMethod.GET, AuthType.NONE)
-  val apiVersion = APIVersion("1.0", APIStatus.PROTOTYPED, Seq(apiEndpoint))
-  val apiDefinition = APIDefinition("calendar", "/", "Calendar API", "My Calendar API", "calendar", Seq(apiVersion))
+  val apiVersion = APIVersion("1.0", "http://localhost:8080", APIStatus.PROTOTYPED, Seq(apiEndpoint))
+  val apiDefinition = APIDefinition("Calendar API", "My Calendar API", "calendar", Seq(apiVersion))
 
   trait Setup {
     val mockApiDefinitionRepository = mock[APIDefinitionRepository]
@@ -25,36 +24,54 @@ class APIDefinitionServiceSpec extends UnitSpec with MockitoSugar {
   }
 
   "createOrUpdate" should {
+    val apiVersionRequest = APIVersionRequest("calendar", "Calendar API", "My Calendar API", "1.0",
+      "http://localhost:8080", APIStatus.PROTOTYPED, Seq(apiEndpoint))
 
-    "create the API Definition in the repository" in new Setup {
+    "create the API Definition in the repository when it does not exist" in new Setup {
 
       given(mockApiDefinitionRepository.fetchByContext(apiDefinition.context)).willReturn(successful(None))
 
-      val result = await(underTest.createOrUpdate(apiDefinition))
+      val result = await(underTest.createOrUpdate(apiVersionRequest))
 
       result shouldBe apiDefinition
       verify(mockApiDefinitionRepository).save(apiDefinition)
     }
 
-    "update the API Definition in the repository" in new Setup {
-      val updatedApiDefinition = apiDefinition.copy(name = "updatedName")
+    "update the version of the API Definition when the version exists" in new Setup {
+      val requestWithUpdatedVersion = apiVersionRequest.copy(status = APIStatus.PUBLISHED)
+      val expectedApi = apiDefinition.copy(versions = Seq(apiVersion.copy(status = APIStatus.PUBLISHED)))
 
-      given(mockApiDefinitionRepository.fetchByContext(updatedApiDefinition.context)).willReturn(successful(Some(apiDefinition)))
+      given(mockApiDefinitionRepository.fetchByContext(apiDefinition.context)).willReturn(successful(Some(apiDefinition)))
 
-      val result = await(underTest.createOrUpdate(updatedApiDefinition))
+      val result = await(underTest.createOrUpdate(requestWithUpdatedVersion))
 
-      result shouldBe updatedApiDefinition
-      verify(mockApiDefinitionRepository).save(updatedApiDefinition)
+      result shouldBe expectedApi
+      verify(mockApiDefinitionRepository).save(expectedApi)
     }
 
-    "fail to create the definition in the repository if context for another service name already exists" in new Setup {
-      val otherApiDefinition = apiDefinition.copy(serviceName = "anotherService")
+    "update the name and description of the API" in new Setup {
+      val requestWithNewAPINameAndDescription = apiVersionRequest.copy(apiName = "updatedName", apiDescription = "updatedDescription")
+      val expectedApi = apiDefinition.copy(name = "updatedName", description = "updatedDescription")
 
-      given(mockApiDefinitionRepository.fetchByContext(apiDefinition.context)).willReturn(successful(Some(otherApiDefinition)))
+      given(mockApiDefinitionRepository.fetchByContext(apiDefinition.context)).willReturn(successful(Some(apiDefinition)))
 
-      intercept[ContextAlreadyDefinedForAnotherServiceException] {
-        await(underTest.createOrUpdate(apiDefinition))
-      }
+      val result = await(underTest.createOrUpdate(requestWithNewAPINameAndDescription))
+
+      result shouldBe expectedApi
+      verify(mockApiDefinitionRepository).save(expectedApi)
+    }
+
+    "add the version of the API Definition when the API exists and does not contain the version" in new Setup {
+      val requestWithNewVersion = apiVersionRequest.copy(version = "2.0")
+      val expectedVersion2 = apiVersion.copy(version = "2.0")
+      val expectedApi = apiDefinition.copy(versions = apiDefinition.versions :+ expectedVersion2)
+
+      given(mockApiDefinitionRepository.fetchByContext(apiDefinition.context)).willReturn(successful(Some(apiDefinition)))
+
+      val result = await(underTest.createOrUpdate(requestWithNewVersion))
+
+      result shouldBe expectedApi
+      verify(mockApiDefinitionRepository).save(expectedApi)
     }
 
     "fail when the repository fails" in new Setup {
@@ -62,7 +79,7 @@ class APIDefinitionServiceSpec extends UnitSpec with MockitoSugar {
       given(mockApiDefinitionRepository.fetchByContext(apiDefinition.context)).willReturn(failed(new RuntimeException("Error message")))
 
       intercept[RuntimeException] {
-        await(underTest.createOrUpdate(apiDefinition))
+        await(underTest.createOrUpdate(apiVersionRequest))
       }
     }
   }

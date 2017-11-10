@@ -1,15 +1,11 @@
 package models
 
 case class APIDefinition(
-                          serviceName: String,
-                          serviceBaseUrl: String,
                           name: String,
                           description: String,
                           context: String,
                           versions: Seq[APIVersion]) {
 
-  require(serviceName.nonEmpty, s"serviceName is required")
-  require(serviceBaseUrl.nonEmpty, s"serviceBaseUrl is required")
   require(name.nonEmpty, s"name is required")
   require(context.nonEmpty, s"context is required")
   require(description.nonEmpty, s"description is required")
@@ -39,8 +35,12 @@ case class APIDefinition(
 
 case class APIVersion(
                        version: String,
+                       serviceBaseUrl: String,
                        status: APIStatus.Value,
-                       endpoints: Seq[Endpoint])
+                       endpoints: Seq[Endpoint]) {
+
+  require(serviceBaseUrl.nonEmpty, s"serviceBaseUrl is required")
+}
 
 case class Endpoint(
                      uriPattern: String,

@@ -1,10 +1,9 @@
 package controllers
 
-import models.{ContextAlreadyDefinedForAnotherService, _}
 import models.JsonFormatters._
+import models._
 import org.mockito.BDDMockito.given
-import org.mockito.Matchers.{any, refEq}
-import org.mockito.Mockito.{verify, verifyZeroInteractions, when}
+import org.mockito.Mockito.{verify, verifyZeroInteractions}
 import org.scalatest.mockito.MockitoSugar
 import play.api.http.Status
 import play.api.libs.json.Json
@@ -13,14 +12,16 @@ import play.api.test.{FakeRequest, Helpers}
 import services.APIDefinitionService
 import utils.UnitSpec
 
-import scala.concurrent.Future
-import scala.concurrent.Future.{failed, successful}
+import scala.concurrent.Future.successful
 
 class APIDefinitionControllerSpec extends UnitSpec with MockitoSugar {
 
   val apiEndpoint = Endpoint("/today", "Get Today's Date", HttpMethod.GET, AuthType.NONE)
-  val apiVersion = APIVersion("1.0", APIStatus.PROTOTYPED, Seq(apiEndpoint))
-  val apiDefinition = APIDefinition("calendar", "/", "Calendar API", "My Calendar API", "calendar", Seq(apiVersion))
+  val apiVersion = APIVersion("1.0", "http://localhost:8080", APIStatus.PROTOTYPED, Seq(apiEndpoint))
+  val apiDefinition = APIDefinition("Calendar API", "My Calendar API", "calendar", Seq(apiVersion))
+
+  val apiVersionRequest = APIVersionRequest("calendar", "Calendar API", "My Calendar API", "1.0",
+    "http://localhost:8080", APIStatus.PROTOTYPED, Seq(apiEndpoint))
 
   trait Setup {
     val mockApiDefinitionService: APIDefinitionService = mock[APIDefinitionService]
@@ -28,17 +29,18 @@ class APIDefinitionControllerSpec extends UnitSpec with MockitoSugar {
 
     val request = FakeRequest()
 
-    given(mockApiDefinitionService.createOrUpdate(apiDefinition)).willReturn(successful(apiDefinition))
+    given(mockApiDefinitionService.createOrUpdate(apiVersionRequest)).willReturn(successful(apiDefinition))
   }
 
   "createOrUpdate" should {
 
-    "succeed with a 204 (NoContent) when payload is valid and service responds successfully" in new Setup {
+    "succeed with a 200 (Ok) with the API Definition when payload is valid and service responds successfully" in new Setup {
 
-      val result: Result = await(underTest.createOrUpdate()(request.withBody(Json.toJson(apiDefinition))))
+      val result: Result = await(underTest.createOrUpdate()(request.withBody(Json.toJson(apiVersionRequest))))
 
-      status(result) shouldBe Status.NO_CONTENT
-      verify(mockApiDefinitionService).createOrUpdate(apiDefinition)
+      status(result) shouldBe Status.OK
+      jsonBodyOf(result) shouldBe Json.toJson(apiDefinition)
+      verify(mockApiDefinitionService).createOrUpdate(apiVersionRequest)
     }
 
     "fail with a 400 (Bad Request) when the json payload is invalid for the request" in new Setup {
@@ -48,23 +50,9 @@ class APIDefinitionControllerSpec extends UnitSpec with MockitoSugar {
       val result: Result = await(underTest.createOrUpdate()(request.withBody(Json.parse(body))))
 
       status(result) shouldBe Status.BAD_REQUEST
-      jsonBodyOf(result) shouldBe Json.parse("""{"code":"INVALID_REQUEST","message":"serviceBaseUrl is required"}""")
+      jsonBodyOf(result) shouldBe Json.parse("""{"code":"INVALID_REQUEST","message":"endpoints is required"}""")
       verifyZeroInteractions(mockApiDefinitionService)
     }
-
-    "fail with a 409 (conflict) when the context was already defined for another service " in new Setup {
-
-      given(mockApiDefinitionService.createOrUpdate(refEq(apiDefinition)))
-        .willReturn(failed(ContextAlreadyDefinedForAnotherServiceException(apiDefinition.context, apiDefinition.serviceName)))
-
-      val result = await(underTest.createOrUpdate()(request.withBody(Json.toJson(apiDefinition))))
-
-      status(result) shouldBe Status.CONFLICT
-
-      (jsonBodyOf(result) \ "message").as[String] shouldBe "Context is already defined for another service. It must be unique per service."
-      (jsonBodyOf(result) \ "code").as[String] shouldBe "CONTEXT_ALREADY_DEFINED"
-    }
-
   }
 
   "fetchByContext" should {

@@ -12,8 +12,11 @@ import scalaj.http.Http
 class ApiDefinitionSpec extends BaseFeatureSpec {
 
   val apiEndpoint = Endpoint("/today", "Get Today's Date", HttpMethod.GET, AuthType.NONE)
-  val apiVersion = APIVersion("1.0", APIStatus.PROTOTYPED, Seq(apiEndpoint))
-  val apiDefinition = APIDefinition("calendar", "/", "Calendar API", "My Calendar API", "calendar", Seq(apiVersion))
+  val apiVersion = APIVersion("1.0", "http://localhost:8080", APIStatus.PROTOTYPED, Seq(apiEndpoint))
+  val apiDefinition = APIDefinition("Calendar API", "My Calendar API", "calendar", Seq(apiVersion))
+
+  val apiVersionRequest = APIVersionRequest("calendar", "Calendar API", "My Calendar API", "1.0",
+    "http://localhost:8080", APIStatus.PROTOTYPED, Seq(apiEndpoint))
 
   feature("create and fetch api definition") {
 
@@ -22,10 +25,11 @@ class ApiDefinitionSpec extends BaseFeatureSpec {
       When("An api-definition create request is received")
       val createdResponse = Http(s"$serviceUrl/api-definition")
         .headers(Seq(CONTENT_TYPE -> "application/json"))
-        .postData(Json.toJson(apiDefinition).toString()).asString
+        .postData(Json.toJson(apiVersionRequest).toString()).asString
 
-      Then("I receive a 204 (NoContent)")
-      createdResponse.code shouldBe NO_CONTENT
+      Then("I receive a 200 (OK) with the API")
+      createdResponse.code shouldBe OK
+      Json.parse(createdResponse.body) shouldBe Json.toJson(apiDefinition)
 
       And("The api-definition can be retrieved by context")
       val fetchResponse = Http(s"$serviceUrl/api-definition?context=${apiDefinition.context}").asString

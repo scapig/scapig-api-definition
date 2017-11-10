@@ -5,20 +5,10 @@ import org.scalatest.{Matchers, WordSpec}
 class APIDefinitionSpec extends WordSpec with Matchers {
 
   val apiEndpoint = Endpoint("/today", "Get Today's Date", HttpMethod.GET, AuthType.NONE)
-  val apiVersion = APIVersion("1.0", APIStatus.PROTOTYPED, Seq(apiEndpoint))
-  val apiDefinition = APIDefinition("calendar", "/", "Calendar API", "My Calendar API", "calendar", Seq(apiVersion))
+  val apiVersion = APIVersion("1.0", "http://localhost:8080", APIStatus.PROTOTYPED, Seq(apiEndpoint))
+  val apiDefinition = APIDefinition("Calendar API", "My Calendar API", "calendar", Seq(apiVersion))
 
   "APIDefinition" should {
-
-    "fail validation if an empty serviceBaseUrl is provided" in {
-      lazy val underTest: APIDefinition =  apiDefinition.copy(serviceBaseUrl = "")
-      assertValidationFailure(underTest, "serviceBaseUrl is required")
-    }
-
-    "fail validation if an empty serviceName is provided" in {
-      lazy val underTest: APIDefinition =  apiDefinition.copy(serviceName = "")
-      assertValidationFailure(underTest, "serviceName is required")
-    }
 
     "fail validation if a version number is referenced more than once" in {
       lazy val underTest: APIDefinition = apiDefinition.copy(versions = apiDefinition.versions ++ apiDefinition.versions)
@@ -69,9 +59,16 @@ class APIDefinitionSpec extends WordSpec with Matchers {
     }
   }
 
-  private def assertValidationFailure(apiDefinition: => APIDefinition, failureMessage: String): Unit = {
+  "APIVersion" should {
+    "fail validation if an empty serviceBaseUrl is provided" in {
+      lazy val underTest: APIVersion =  apiVersion.copy(serviceBaseUrl = "")
+      assertValidationFailure(underTest, "serviceBaseUrl is required")
+    }
+  }
+
+  private def assertValidationFailure(instance: => AnyRef, failureMessage: String): Unit = {
     try {
-      apiDefinition
+      instance
       fail("IllegalArgumentException was expected but not thrown")
     } catch {
       case e: IllegalArgumentException =>

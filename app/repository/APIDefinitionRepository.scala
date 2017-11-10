@@ -23,7 +23,7 @@ class APIDefinitionRepository @Inject()(val reactiveMongoApi: ReactiveMongoApi) 
   def save(apiDefinition: APIDefinition): Future[APIDefinition] = {
     repository.flatMap(collection =>
       collection.update(
-        Json.obj("serviceName"-> apiDefinition.serviceName), apiDefinition, upsert = true) map {
+        Json.obj("context"-> apiDefinition.context), apiDefinition, upsert = true) map {
         case result: UpdateWriteResult if result.ok => apiDefinition
         case error => throw new RuntimeException(s"Failed to save api-definition ${error.errmsg}")
       }
@@ -50,8 +50,7 @@ class APIDefinitionRepository @Inject()(val reactiveMongoApi: ReactiveMongoApi) 
 
   private def ensureIndexes() = {
     Future.sequence(Seq(
-    createIndex("serviceName", "serviceNameIndex"),
-    createIndex("context", "contextIndex"),
+    createIndex("context", "contextIndex")
     ))
   }
 

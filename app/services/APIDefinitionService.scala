@@ -2,10 +2,10 @@ package services
 
 import javax.inject.{Inject, Singleton}
 
-import models.{APIDefinition, ContextAlreadyDefinedForAnotherService, ContextAlreadyDefinedForAnotherServiceException}
+import models.{APIDefinition, APIVersion, APIVersionRequest}
 import repository.APIDefinitionRepository
-import scala.concurrent.ExecutionContext.Implicits.global
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 @Singleton
@@ -19,12 +19,30 @@ class APIDefinitionService @Inject()(apiDefinitionRepository: APIDefinitionRepos
     apiDefinitionRepository.findAll()
   }
 
-  def createOrUpdate(apiDefinition: APIDefinition): Future[APIDefinition] = {
+  def createOrUpdate(apiVersionRequest: APIVersionRequest): Future[APIDefinition] = {
     for {
-      existingApi <- apiDefinitionRepository.fetchByContext(apiDefinition.context)
-      _ = if(existingApi.exists(api => api.serviceName != apiDefinition.serviceName)) throw ContextAlreadyDefinedForAnotherServiceException(apiDefinition.context, apiDefinition.serviceName)
-      apiDefinition <- apiDefinitionRepository.save(apiDefinition)
+      newApiDefinition <- updatedApiDefinition(apiVersionRequest)
+      apiDefinition <- apiDefinitionRepository.save(newApiDefinition)
     } yield apiDefinition
   }
 
+  private def updatedApiDefinition(apiVersionRequest: APIVersionRequest): Future[APIDefinition] = {
+    val apiVersion = APIVersion(
+      apiVersionRequest.version,
+      apiVersionRequest.serviceBaseUrl,
+      apiVersionRequest.status,
+      apiVersionRequest.endpoints)
+
+    apiDefinitionRepository.fetchByContext(apiVersionRequest.context) map {
+      case Some(apiDefinition) =>
+        apiDefinition.copy(
+          name = apiVersionRequest.apiName,
+          description = apiVersionRequest.apiDescription,
+          versions = apiDefinition.versions.filterNot(_.version == apiVersionRequest.version) :+ apiVersion
+        )
+      case None =>
+        APIDefinition(apiVersionRequest.apiName, apiVersionRequest.apiDescription, apiVersionRequest.context,
+          Seq(apiVersion))
+    }
+  }
 }
