@@ -7,6 +7,8 @@ import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import org.scalatest._
 import org.scalatestplus.play.guice.GuiceOneServerPerSuite
+import play.api.Application
+import play.api.inject.guice.GuiceApplicationBuilder
 import repository.APIDefinitionRepository
 
 import scala.concurrent.Await
@@ -25,6 +27,10 @@ with GivenWhenThen with BeforeAndAfterEach with BeforeAndAfterAll with GuiceOneS
 
   override lazy val port = 14680
   val serviceUrl = s"http://localhost:$port"
+
+  override def fakeApplication(): Application = new GuiceApplicationBuilder()
+    .configure("mongodb.uri" -> "mongodb://localhost:27017/scapig-api-definition")
+    .build()
 
   val timeout = Duration(5, TimeUnit.SECONDS)
   val mocks = Seq[MockHost]()
