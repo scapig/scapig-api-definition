@@ -17,7 +17,7 @@ class APIDefinitionRepositorySpec extends UnitSpec with BeforeAndAfterEach {
   val apiDefinition = APIDefinition("Calendar API", "My Calendar API", "calendar", Seq(apiVersion))
 
   lazy val fakeApplication: Application = new GuiceApplicationBuilder()
-    .configure("mongodb.uri" -> "mongodb://localhost:27017/tapi-api-definition-test")
+    .configure("mongodb.uri" -> "mongodb://localhost:27017/scapig-api-definition-test")
     .build()
 
   lazy val underTest = fakeApplication.injector.instanceOf[APIDefinitionRepository]

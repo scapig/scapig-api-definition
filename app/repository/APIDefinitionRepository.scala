@@ -18,7 +18,7 @@ import scala.concurrent.Future
 class APIDefinitionRepository @Inject()(val reactiveMongoApi: ReactiveMongoApi)  {
 
   def repository: Future[JSONCollection] =
-    reactiveMongoApi.database.map(_.collection[JSONCollection]("tapi-api-definition"))
+    reactiveMongoApi.database.map(_.collection[JSONCollection]("scapig-api-definition"))
 
   def save(apiDefinition: APIDefinition): Future[APIDefinition] = {
     repository.flatMap(collection =>
