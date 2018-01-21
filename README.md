@@ -11,7 +11,14 @@ sbt universal:package-zip-tarball
 docker build -t scapig-api-definition .
 ``
 
+## Publishing
+``
+docker tag scapig-api-definition scapig/scapig-api-definition:VERSION
+docker login
+docker push scapig/scapig-api-definition:VERSION
+``
+
 ## Running
 ``
-docker run -p7000:7000 -i -a stdin -a stdout -a stderr scapig-api-definition sh start-docker.sh
+docker run -p9010:9010 -d scapig/scapig-api-definition:VERSION
 ``
