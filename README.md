@@ -1,5 +1,7 @@
 ## scapig-api-definition
 
+This is the microservice which stores and retrieves the API Definitions of the API Manager http://www.scapig.com
+
 ## Building
 ``
 sbt clean test it:test component:test
